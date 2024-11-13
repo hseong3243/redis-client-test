@@ -8,6 +8,7 @@ import io.lettuce.core.api.sync.RedisCommands;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import redis.clients.jedis.Jedis;
@@ -19,6 +20,14 @@ public class RedisTheadSafeTest {
     private final int poolSize = 50;
     private final ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
     private CountDownLatch latch;
+
+    @BeforeAll
+    static void beforeAll() {
+        try(RedisClient redisClient = RedisClient.create("redis://localhost:6379")) {
+            RedisCommands<String, String> sync = redisClient.connect().sync();
+            sync.flushall();
+        }
+    }
 
     @BeforeEach
     void setUp() {
@@ -49,7 +58,7 @@ public class RedisTheadSafeTest {
         // then
         Jedis jedis = jedisPool.getResource();
         String result = jedis.get("jedis");
-        assertThat(result).isNotEqualTo(String.valueOf(poolSize));
+        assertThat(result).isEqualTo(String.valueOf(poolSize));
         jedis.close();
         jedisPool.close();
     }

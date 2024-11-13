@@ -5,10 +5,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import redis.clients.jedis.Jedis;
 
 public class JedisLettuceTest {
+
+    @BeforeAll
+    static void beforeAll() {
+        try(RedisClient redisClient = RedisClient.create("redis://localhost:6379")) {
+            RedisCommands<String, String> sync = redisClient.connect().sync();
+            sync.flushall();
+        }
+    }
 
     @Test
     void 제디스() {
